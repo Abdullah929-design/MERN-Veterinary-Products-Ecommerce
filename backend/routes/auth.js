@@ -7,10 +7,12 @@ const { generateToken, verifyToken } = require('../middleware/jwtUtils');
 
 const router = express.Router();
 
+// Use the deployed frontend URL for email links. Set FRONTEND_URL in Render environment variables.
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Signup
 router.post('/signup', async (req, res) => {
+  console.log('FRONTEND_URL being used (signup):', FRONTEND_URL);
   const { email, password, role } = req.body;
   try {
     let user = await User.findOne({ email });
@@ -19,19 +21,19 @@ router.post('/signup', async (req, res) => {
     user = new User({
       email,
       password: hashedPassword,
-      role: role || 'user',
-      isVerified: false
+      role: role || 'user'
     });
     await user.save();
-    // Generate verification token
+    // Generate verification token (not required for login right now)
     const token = generateToken({ userId: user._id }, '1h');
+    // Email confirmation link uses the deployed frontend URL
     const verifyLink = `${FRONTEND_URL}/verify-email?token=${token}`;
     await sendEmail(
       email,
       'Verify your email',
       `<p>Please verify your email by clicking <a href="${verifyLink}">here</a>.</p>`
     );
-    res.json({ message: 'User registered. Please check your email to verify your account.' });
+    res.json({ message: 'User registered successfully.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -73,7 +75,6 @@ router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
-    if (!user.isVerified) return res.status(403).json({ error: 'Please verify your email before logging in.' });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
     const token = jwt.sign(
@@ -89,6 +90,7 @@ router.post('/login', async (req, res) => {
 
 // Forgot Password
 router.post('/forgot-password', async (req, res) => {
+  console.log('FRONTEND_URL being used (forgot-password):', FRONTEND_URL);
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
@@ -97,6 +99,7 @@ router.post('/forgot-password', async (req, res) => {
     user.resetToken = resetToken;
     user.resetTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour
     await user.save();
+    // Password reset link uses the deployed frontend URL
     const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
     await sendEmail(
       email,

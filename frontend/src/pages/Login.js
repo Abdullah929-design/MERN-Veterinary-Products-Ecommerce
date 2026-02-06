@@ -89,10 +89,6 @@ function Login() {
                 disabled={loading}
               />
             </div>
-            <div style={{ textAlign: 'right', marginBottom: 16 }}>
-              <Link to="/forgot-password" className="auth-link">Forgot Password?</Link>
-            </div>
-
             <button 
               type="submit" 
               className={`btn btn-primary btn-lg auth-submit ${loading ? 'loading' : ''}`}
