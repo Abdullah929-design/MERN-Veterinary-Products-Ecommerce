@@ -64,8 +64,8 @@ function Signup() {
               </div>
               <div className="success-message">
                 <span>✅</span>
-                <h2>Verify Your Email</h2>
-                <p>A verification link has been sent to your email address. Please check your inbox and verify your email to activate your account.</p>
+                <h2>Success</h2>
+                <p>Your account has been created You can now login</p>
               </div>
             </div>
           </div>
