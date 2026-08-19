@@ -12,11 +12,22 @@ cloudinary.config({
 });
 
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// =====================================================
+// HEALTH CHECK / KEEP-ALIVE ENDPOINT
+// =====================================================
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'Backend is running',
+    message: 'Server is alive'
+  });
+});
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -46,9 +57,18 @@ app.use('/api/payment-methods', paymentMethodRoutes);
 const aboutRoutes = require('./routes/about');
 app.use('/api/about', aboutRoutes);
 
+// =====================================================
+// DATABASE CONNECTION
+// =====================================================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .catch(err => console.log('MongoDB connection error:', err));
 
+// =====================================================
+// START SERVER
+// =====================================================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
